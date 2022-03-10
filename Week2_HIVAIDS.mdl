@@ -1,0 +1,376 @@
+{UTF-8}
+Fear Switch=
+	1
+	~	Dmnl [0,1,1]
+	~		|
+
+Normal Death Rate=
+	0.01
+	~	1/Year [0,0.05,0.005]
+	~		|
+
+Contact Frequency=
+	(Normal Contact Frequency*Effect of Probability on Contacts and Infectivity*Fear Switch\
+		)+(1-Fear Switch)*Normal Contact Frequency
+	~	People/People/Year
+	~		|
+
+HIV Deaths=
+	Population with HIV*HIV Death Rate
+	~	People/Year
+	~		|
+
+Effect of Probability on Contacts and Infectivity=
+	Function of Probability on Contact Frequency(Probability of Contact with Infected Person\
+		)
+	~	Dmnl
+	~		|
+
+Normal Deaths=
+	Normal Death Rate*Population Susceptible
+	~	People/Year
+	~		|
+
+HIV Death Rate=
+	0.01
+	~	1/Year [0,0.05,0.005]
+	~		|
+
+Normal i=
+	0.02
+	~	Dmnl [0,0.5,0.005]
+	~		|
+
+Infectivity=
+	Normal i*Effect of Probability on Contacts and Infectivity
+	~	Dmnl [0,0.04,0.005]
+	~	The fraction of contacts that result in transmission of the disease, or \
+		equivalently, the conditional probability of transmission given
+		a contact between an infected and susceptible individual
+	|
+
+Function of Probability on Contact Frequency(
+	[(0,0)-(0.6,1)],(0,1),(0.08,0.91),(0.13,0.85),(0.17,0.69),(0.21,0.5),(0.26,0.3),(0.32\
+		,0.15),(0.38,0.076),(0.45,0.081),(0.521792,0.076),(0.6,0.076))
+	~	Dmnl
+	~		|
+
+Susceptible Contacts=
+	Population Susceptible*Contact Frequency
+	~	People/Year
+	~	Number of contacts that the susceptible population has in a year
+	|
+
+Population Susceptible= INTEG (
+	Birth Rate-Infection Rate-Normal Deaths,
+		Initial Population Susceptbile)
+	~	People
+	~		|
+
+Total AIDS Deaths= INTEG (
+	Death Rate,
+		0)
+	~	People
+	~		|
+
+Population with HIV= INTEG (
+	Infection Rate-Advancement Rate-HIV Deaths,
+		1)
+	~	People
+	~		|
+
+Advancement Rate=
+	Population with HIV/Time for Infection to Advance
+	~	People/Year
+	~		|
+
+Birth Rate=
+	3.6e+06
+	~	People/Year
+	~		|
+
+Probability of Contact with Infected Person=
+	(Population with HIV+Population with AIDS)/Total Population
+	~	Dmnl
+	~		|
+
+Death Rate=
+	Population with AIDS/AIDS Survival Time
+	~	People/Year
+	~		|
+
+Time for Infection to Advance=
+	10
+	~	Year
+	~		|
+
+AIDS Survival Time=
+	2
+	~	Year
+	~		|
+
+Total Population=
+	Population Susceptible+Population with HIV+Population with AIDS
+	~	People
+	~		|
+
+Population with AIDS= INTEG (
+	Advancement Rate-Death Rate,
+		0)
+	~	People
+	~		|
+
+Infection Rate=
+	Infectivity*Contacts Between Infected and Uninfected People
+	~	People/Year
+	~		|
+
+Initial Population Susceptbile=
+	2.27e+08
+	~	People
+	~	Initial population of the USA in 1980
+	|
+
+Normal Contact Frequency=
+	8
+	~	People/People/Year
+	~	1500
+	|
+
+Contacts Between Infected and Uninfected People=
+	Susceptible Contacts*Probability of Contact with Infected Person
+	~	People/Year
+	~		|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Parameters
+	|
+
+FINAL TIME  = 400
+	~	Year
+	~	The final time for the simulation.
+	|
+
+INITIAL TIME  = 0
+	~	Year
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  = 
+        TIME STEP 
+	~	Year [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 1
+	~	Year [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*View 1
+$192-192-192,0,Arial|12||0-0-0|0-0-0|0-0-255|-1--1--1|255-255-255|72,72,100,0
+10,1,Population Susceptible,391,164,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,2,Population with HIV,627,164,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,3,5,2,4,0,0,22,0,0,0,-1--1--1,,1|(552,164)|
+1,4,5,1,100,0,0,22,0,0,0,-1--1--1,,1|(468,164)|
+11,5,420,509,164,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,6,Infection Rate,509,180,39,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,7,Contacts Between Infected and Uninfected People,491,349,67,21,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,8,7,6,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(517,252)|
+10,9,Infectivity,540,88,27,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,10,Total Population,744,421,45,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,11,Susceptible Contacts,320,277,59,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,12,1,11,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(317,228)|
+1,13,11,7,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(351,324)|
+1,14,9,5,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(531,128)|
+10,15,Normal Contact Frequency,101,420,44,16,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,16,Probability of Contact with Infected Person,683,277,60,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,17,16,7,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(651,344)|
+1,18,2,16,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(683,237)|
+1,19,10,16,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(755,328)|
+10,20,Initial Population Susceptbile,235,51,47,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,21,20,1,0,0,0,0,0,64,1,-1--1--1,,1|(304,101)|
+10,22,Population Susceptible,660,533,37,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,23,Population with HIV,741,525,36,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,24,22,10,0,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(700,480)|
+1,25,23,10,0,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(741,475)|
+10,26,Population with AIDS,868,160,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,27,29,26,4,0,0,22,0,0,0,-1--1--1,,1|(784,164)|
+1,28,29,2,100,0,0,22,0,0,0,-1--1--1,,1|(695,164)|
+11,29,772,732,164,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,30,Advancement Rate,732,180,53,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,31,Time for Infection to Advance,839,92,49,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,32,31,29,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(776,116)|
+1,33,2,29,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(657,120)|
+10,34,Population with AIDS,853,465,47,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,35,34,10,0,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(795,441)|
+1,36,34,16,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(808,367)|
+1,37,38,26,100,0,0,22,0,0,0,-1--1--1,,1|(876,216)|
+11,38,772,876,257,8,8,33,3,0,0,4,0,0,0,0,0,0,0,0,0
+10,39,Death Rate,917,257,33,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,40,AIDS Survival Time,804,284,56,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,41,40,38,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(824,255)|
+1,42,26,38,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(908,184)|
+12,43,48,208,161,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,44,46,1,4,0,0,22,0,0,0,-1--1--1,,1|(321,161)|
+1,45,46,43,100,0,0,22,0,0,0,-1--1--1,,1|(248,161)|
+11,46,48,283,161,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,47,Birth Rate,283,177,29,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+12,48,48,391,12,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,49,51,48,4,0,0,22,0,0,0,-1--1--1,,1|(391,52)|
+1,50,51,1,100,0,0,22,0,0,0,-1--1--1,,1|(391,124)|
+11,51,48,391,93,8,8,33,3,0,0,4,0,0,0,0,0,0,0,0,0
+10,52,Normal Deaths,453,93,44,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+12,53,48,631,16,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,54,56,53,4,0,0,22,0,0,0,-1--1--1,,1|(631,49)|
+1,55,56,2,100,0,0,22,0,0,0,-1--1--1,,1|(631,117)|
+11,56,48,631,83,8,8,33,3,0,0,4,0,0,0,0,0,0,0,0,0
+10,57,HIV Deaths,683,83,33,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,58,1,51,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(349,95)|
+1,59,2,56,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(576,109)|
+10,60,Total AIDS Deaths,880,341,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,61,38,60,4,0,0,22,0,0,0,-1--1--1,,1|(876,293)|
+12,62,0,1164,100,152,152,3,44,0,0,1,0,0,0,0,0,0,0,0,0
+HIV/AIDS
+10,63,Function of Probability on Contact Frequency,156,520,56,24,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,64,Contact Frequency,216,347,53,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,65,15,64,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(113,380)|
+1,66,64,11,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(248,315)|
+10,67,Effect of Probability on Contacts and Infectivity,336,489,68,16,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,68,63,67,1,0,0,0,0,64,0,-1--1--1,,1|(224,544)|
+1,69,67,64,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(277,441)|
+10,70,Effect of Probability on Contacts and Infectivity,461,-4,60,21,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,71,70,9,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(521,37)|
+10,72,Normal i,587,25,25,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,73,72,9,0,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(567,52)|
+10,74,Time,792,16,24,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,75,16,67,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(488,499)|
+10,76,Fear Switch,76,276,36,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,77,76,64,1,0,0,0,0,64,0,-1--1--1,,1|(147,295)|
+12,78,0,580,252,20,20,4,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+R1
+12,79,0,428,260,20,20,5,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+B1
+12,80,0,440,413,20,20,4,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+B2
+12,81,0,432,448,47,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+Cutting Contacts
+12,82,0,476,-96,20,20,4,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+B3
+12,83,0,472,-64,48,16,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+Safe Sex and Needle Practices
+12,84,0,581,288,32,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+Contagion
+12,85,0,423,292,28,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+Depletion
+10,86,HIV Death Rate,716,43,44,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,87,Normal Death Rate,317,16,37,20,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,88,87,51,0,0,0,0,0,64,0,-1--1--1,,1|(356,56)|
+1,89,86,56,0,0,0,0,0,64,0,-1--1--1,,1|(675,64)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*View 2
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|255-255-255|72,72,100,0
+12,1,0,-180,239,152,152,3,44,0,0,1,0,0,0,0,0,0,0,0,0
+HIV/AIDS
+12,2,0,136,239,152,152,3,44,0,0,1,0,0,0,0,0,0,0,0,0
+Infections
+10,3,Infectivity,-232,452,27,8,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,4,Effect of Probability on Contacts and Infectivity,-181,523,47,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,5,4,3,0,0,0,0,0,64,0,-1--1--1,,1|(-204,489)|
+10,6,Normal i,-289,504,31,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,7,6,3,0,0,0,0,0,64,0,-1--1--1,,1|(-265,484)|
+10,8,Time,-97,449,21,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,9,Fear Switch,-27,509,40,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+12,10,0,473,240,152,152,3,44,0,0,1,0,0,0,0,0,0,0,0,0
+Compare_Behavior
+12,11,0,796,241,152,152,3,44,0,0,1,0,0,0,0,0,0,0,0,0
+Compare_Behavior-Death_Rate
+///---\\\
+:GRAPH HIV/AIDS
+:TITLE HIV/AIDS
+:X-AXIS Time
+:SCALE
+:VAR Population with HIV
+:LINE-WIDTH 2
+:VAR Population with AIDS
+:LINE-WIDTH 2
+:VAR Total AIDS Deaths
+:LINE-WIDTH 2
+:VAR Population Susceptible
+:LINE-WIDTH 2
+
+:GRAPH Infections
+:TITLE Infectious Population
+:X-AXIS Time
+:SCALE
+:VAR Population with HIV
+:LINE-WIDTH 2
+:VAR Population with AIDS
+:LINE-WIDTH 2
+
+:GRAPH Compare_Behavior
+:TITLE Compare Behavior-Populations
+:SCALE
+:VAR Population with HIV
+:DATASET No_Behavior
+:LINE-WIDTH 2
+:VAR Population with AIDS
+:DATASET No_Behavior
+:LINE-WIDTH 2
+:VAR Population with HIV
+:DATASET Behavior
+:LINE-WIDTH 2
+:VAR Population with AIDS
+:DATASET Behavior
+:LINE-WIDTH 2
+
+:GRAPH Compare_Behavior-Death_Rate
+:TITLE Compare Behavior-Death Rate
+:SCALE
+:VAR Death Rate
+:DATASET No_Behavior
+:LINE-WIDTH 2
+:VAR Death Rate
+:DATASET Behavior
+:LINE-WIDTH 2
+:L<%^E!@
+1:No_Behavior.vdfx
+1:Behavior.vdfx
+4:Time
+5:Function of Probability on Contact Frequency
+9:No_Behavior
+19:100,1
+24:0
+25:400
+26:400
+23:0
+15:0,0,0,0,0,0
+27:0,
+34:0,
+42:0
+72:0
+73:0
+35:Date
+36:YYYY-MM-DD
+37:2000
+38:1
+39:1
+40:0
+41:0
+95:0
+96:0
+77:0
+78:0
+93:0
+94:0
+92:0
+91:0
+90:0
+87:0
+75:
+43:
