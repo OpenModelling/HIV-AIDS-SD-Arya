@@ -1,17 +1,123 @@
 {UTF-8}
+"Unidentified Population with HIV/AIDS"= INTEG (
+	Infection Rate-Diagnosis Rate-"Non-AIDS Deaths (Undiagnosed)",
+		Initial Number of Cases)
+	~	People
+	~		|
+
+Average Death Rate from AIDS=
+	("Death Rate (Treated)"+"Death Rate (Untreated)")/2
+	~	People/Year
+	~		|
+
+Initial Number of Cases=
+	5000
+	~	People [1,100000,20]
+	~		|
+
+Actual Probability of Contact with Infected Person=
+	(Diagnosed Untreated Population+"Unidentified Population with HIV/AIDS")/Total Population
+	~	Dmnl
+	~		|
+
+Known Probability of Contact with Infectious Individual=
+	Diagnosed Untreated Population/Total Population
+	~	Dmnl
+	~		|
+
+Infectivity Feedback Switch=
+	1
+	~	Dmnl [0,1,1]
+	~		|
+
+Infectivity=
+	(Normal i*Effect of Perceived Risk on Contacts and Infectivity*Infectivity Feedback Switch\
+		)+(1-Infectivity Feedback Switch)*Normal i
+	~	Dmnl [0,0.04,0.005]
+	~	The fraction of contacts that result in transmission of the disease, or \
+		equivalently, the conditional probability of transmission given
+		a contact between an infected and susceptible individual
+		
+		(Normal Contact Frequency*Effect of Perceived Risk on Contacts and \
+		Infectivity*Contact Feedback Switch)+(1-Contact Feedback Switch)*Normal \
+		Contact Frequency
+	|
+
+Fraction of Population Receiving Treatment= INTEG (
+	Rate of Increase In Treatments Provided,
+		0)
+	~	Dmnl
+	~		|
+
+Rate of Treatment=
+	(Fraction of Population Receiving Treatment*Diagnosed Untreated Population/Time to Get Treated\
+		)*Treatment Switch
+	~	People/Year
+	~		|
+
+Rate of Increase In Treatments Provided=
+	IF THEN ELSE(Perceived Risk>Fraction of Population Receiving Treatment, (Perceived Risk\
+		-Fraction of Population Receiving Treatment)/Time to Adjust Treatment, 0)
+	~	1/Year
+	~		|
+
+Time to Adjust Treatment=
+	15
+	~	Year [0,50,3]
+	~		|
+
+Treatment Switch=
+	1
+	~	Dmnl [0,1,1]
+	~		|
+
+Perceived Risk=
+	SMOOTH N( Known Probability of Contact with Infectious Individual , Time to Adjust Perceived Risk
+	 , 0 , Order)
+	~	Dmnl
+	~		|
+
+Relative Risk=
+	(Perceived Risk)/Reference Risk
+	~	Dmnl
+	~		|
+
+Reference Risk=
+	0.05
+	~	Dmnl [0,1,0.0001]
+	~	Reference risk is the normal perception of contracting HIV in a given \
+		population.
+	|
+
+Effect of Perceived Risk on Contacts and Infectivity=
+	Function of Perceived Risk on Contact Frequency(Relative Risk)
+	~	Dmnl
+	~		|
+
+Diagnosed Untreated Population= INTEG (
+	Diagnosis Rate-"Death Rate (Untreated)"-"Non-AIDS Deaths (Diagnosed)"-Rate of Treatment\
+		,
+		0)
+	~	People
+	~		|
+
+"Non-AIDS Deaths (Diagnosed)"=
+	Diagnosed Untreated Population*Normal Death Rate
+	~	People/Year
+	~		|
+
+"Non-AIDS Deaths (Undiagnosed)"=
+	Normal Death Rate*"Unidentified Population with HIV/AIDS"
+	~	People/Year
+	~		|
+
 "Death Rate (Untreated)"=
-	"Population with HIV/AIDS"/"Lifespan (Untreated)"
+	Diagnosed Untreated Population/"Lifespan (Untreated)"
 	~	People/Year
 	~		|
 
 Order=
 	2
-	~	Dmnl
-	~		|
-
-Perceived Risk=
-	SMOOTH N( Probability of Contact with Infected Person , Time to Adjust Perceived Risk\
-		 , 0 , Order)
 	~	Dmnl
 	~		|
 
@@ -25,19 +131,8 @@ Perceived Risk=
 	~	Year [0,100,1]
 	~		|
 
-Effect of Probability on Contacts and Infectivity=
-	Function of Probability on Contact Frequency(Perceived Risk)
-	~	Dmnl
-	~		|
-
-"Population with HIV/AIDS"= INTEG (
-	Testing Rate-"Death Rate (Untreated)"-Rate of Treatment,
-		0)
-	~	People
-	~		|
-
 Total Population=
-	Population Susceptible+"Population with HIV/AIDS"+"Unidentified Population with HIV/AIDS"\
+	Population Susceptible+Diagnosed Untreated Population+"Unidentified Population with HIV/AIDS"\
 		+Population Treated
 	~	People
 	~		|
@@ -46,7 +141,8 @@ Total Deaths From Aids= INTEG (
 	"Death Rate (Treated)"+"Death Rate (Untreated)",
 		0)
 	~	People
-	~		|
+	~		~	:SUPPLEMENTARY 
+	|
 
 "Lifespan (Untreated)"=
 	10
@@ -59,71 +155,45 @@ Population Treated= INTEG (
 	~	People
 	~		|
 
-Fraction of Population Receiving Treatment=
-	0.3
-	~	Dmnl [0,0.6,0.1]
-	~		|
-
-Rate of Treatment=
-	Treatment Start*((Fraction of Population Receiving Treatment*"Population with HIV/AIDS"\
-		)/Time to Get Treated)
-	~	People/Year
-	~		|
-
-Treatment Start=
-	STEP( 1, 20 )
-	~	Dmnl
-	~		|
-
 "Total Individuals Living with HIV/AIDS"=
-	"Population with HIV/AIDS"+"Unidentified Population with HIV/AIDS"+Population Treated
+	Diagnosed Untreated Population+"Unidentified Population with HIV/AIDS"+Population Treated
 	~	People
-	~		|
+	~		~	:SUPPLEMENTARY 
+	|
 
 Time to Get Treated=
 	0.5
 	~	Year [0,3,0.25]
 	~		|
 
-Probability of Contact with Infected Person=
-	("Population with HIV/AIDS"+"Unidentified Population with HIV/AIDS")/Total Population
-	~	Dmnl
-	~		|
-
-"Unidentified Population with HIV/AIDS"= INTEG (
-	Infection Rate-Testing Rate,
-		1)
-	~	People
-	~		|
-
-Testing Rate=
-	"Unidentified Population with HIV/AIDS"/Time to test positive
+Diagnosis Rate=
+	"Unidentified Population with HIV/AIDS"/Time to Get Diagnosed
 	~	People/Year
 	~		|
 
-Time to test positive=
+Time to Get Diagnosed=
 	1
 	~	Year [0,10,0.25]
 	~		|
 
 Time to Adjust Perceived Risk=
-	4
-	~	Year [0,50,1]
+	5
+	~	Year [0,5,0.5]
 	~		|
 
-Fear Switch=
+Contact Feedback Switch=
 	1
 	~	Dmnl [0,1,1]
 	~		|
 
 Normal Death Rate=
 	0.01
-	~	1/Year [0,100,2]
+	~	1/Year [0,0.05,0.01]
 	~		|
 
 Contact Frequency=
-	(Normal Contact Frequency*Effect of Probability on Contacts and Infectivity*Fear Switch\
-		)+(1-Fear Switch)*Normal Contact Frequency
+	(Normal Contact Frequency*Effect of Perceived Risk on Contacts and Infectivity*Contact Feedback Switch\
+		)+(1-Contact Feedback Switch)*Normal Contact Frequency
 	~	People/People/Year
 	~		|
 
@@ -133,21 +203,14 @@ Normal Deaths=
 	~		|
 
 Normal i=
-	0.05
+	0.015
 	~	Dmnl [0,0.5,0.005]
 	~		|
 
-Infectivity=
-	Normal i*Effect of Probability on Contacts and Infectivity
-	~	Dmnl [0,0.04,0.005]
-	~	The fraction of contacts that result in transmission of the disease, or \
-		equivalently, the conditional probability of transmission given
-		a contact between an infected and susceptible individual
-	|
-
-Function of Probability on Contact Frequency(
-	[(0,0)-(1,1)],(0,1),(0.09,0.98),(0.2,0.92),(0.3,0.83),(0.41,0.68),(0.5,0.5),(0.6,0.3\
-		),(0.71,0.15),(0.8,0.1),(1,0.1))
+Function of Perceived Risk on Contact Frequency(
+	[(0,0)-(3,1)],(0,1),(1,1),(1.44807,0.957346),(1.6558,0.834123),(1.88798,0.635071),(2.00407\
+		,0.50237),(2.13238,0.331754),(2.28513,0.227488),(2.53564,0.180095),(2.82892,0.18),(\
+		2.98167,0.18))
 	~	Dmnl
 	~		|
 
@@ -180,13 +243,13 @@ Initial Population Susceptbile=
 	|
 
 Normal Contact Frequency=
-	10
+	14
 	~	People/People/Year
 	~	1500
 	|
 
 Contacts Between Infected and Uninfected People=
-	Susceptible Contacts*Probability of Contact with Infected Person
+	Susceptible Contacts*Actual Probability of Contact with Infected Person
 	~	People/Year
 	~		|
 
@@ -196,8 +259,7 @@ Contacts Between Infected and Uninfected People=
 		Simulation Control Parameters
 	|
 
-FINAL TIME=
-	100
+FINAL TIME  = 75
 	~	Year
 	~	The final time for the simulation.
 	|
@@ -222,120 +284,179 @@ TIME STEP  = 1
 V300  Do not put anything below this section - it will be ignored
 *View 1
 $192-192-192,0,Arial|12||0-0-0|0-0-0|0-0-255|-1--1--1|255-255-255|72,72,100,0
-10,1,Population Susceptible,428,276,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
-10,2,"Population with HIV/AIDS",872,275,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,3,5,63,4,0,0,22,0,0,0,-1--1--1,,1|(584,276)|
-1,4,5,1,100,0,0,22,0,0,0,-1--1--1,,1|(504,276)|
-11,5,222,548,276,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
-10,6,Infection Rate,548,292,39,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
-10,7,Contacts Between Infected and Uninfected People,580,475,67,21,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,8,7,6,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(584,360)|
-10,9,Infectivity,536,200,27,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-10,10,Total Population,881,579,45,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-10,11,Susceptible Contacts,357,387,59,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,12,1,11,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(356,340)|
-1,13,11,7,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(393,460)|
-1,14,9,5,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(549,235)|
-10,15,Normal Contact Frequency,140,532,44,16,8,131,0,0,0,0,0,0,0,0,0,0,0,0
-10,16,Probability of Contact with Infected Person,736,512,60,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,17,16,7,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(659,508)|
-1,18,2,16,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(859,432)|
-1,19,10,16,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(807,568)|
-10,20,Initial Population Susceptbile,272,161,47,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,21,20,1,0,0,0,0,0,64,1,-1--1--1,,1|(340,212)|
-10,22,Population Susceptible,936,663,37,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
-10,23,"Population with HIV/AIDS",1011,653,47,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
-1,24,22,10,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(920,613)|
-1,25,23,10,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(960,608)|
-12,26,48,245,271,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
-1,27,29,1,4,0,0,22,0,0,0,-1--1--1,,1|(360,271)|
-1,28,29,26,100,0,0,22,0,0,0,-1--1--1,,1|(283,271)|
-11,29,48,320,271,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
-10,30,Birth Rate,320,287,29,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
-12,31,48,428,124,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
-1,32,34,31,4,0,0,22,0,0,0,-1--1--1,,1|(428,163)|
-1,33,34,1,100,0,0,22,0,0,0,-1--1--1,,1|(428,233)|
-11,34,48,428,203,8,8,33,3,0,0,4,0,0,0,0,0,0,0,0,0
-10,35,Normal Deaths,465,203,27,20,40,131,0,0,-1,0,0,0,0,0,0,0,0,0
-1,36,1,34,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(388,205)|
-10,37,Function of Probability on Contact Frequency,193,632,56,24,8,131,0,0,0,0,0,0,0,0,0,0,0,0
-10,38,Contact Frequency,303,492,53,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,39,15,38,1,0,43,0,2,192,0,-1--1--1,|12||0-0-0,1|(180,496)|
-1,40,38,11,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(315,452)|
-10,41,Effect of Probability on Contacts and Infectivity,356,608,68,16,8,131,0,0,0,0,0,0,0,0,0,0,0,0
-1,42,37,41,1,0,0,0,0,64,0,-1--1--1,,1|(253,651)|
-1,43,41,38,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(328,563)|
-10,44,Effect of Probability on Contacts and Infectivity,500,108,60,21,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
-1,45,44,9,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(489,169)|
-10,46,Normal i,585,72,25,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,47,46,9,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(597,136)|
-10,48,Time,529,-45,24,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
-10,49,Fear Switch,212,420,36,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,50,49,38,1,0,0,0,0,64,0,-1--1--1,,1|(260,444)|
-12,51,0,707,389,20,20,4,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+10,1,Population Susceptible,184,335,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,2,Diagnosed Untreated Population,760,340,52,24,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,3,5,62,4,0,0,22,0,0,0,-1--1--1,,1|(408,337)|
+1,4,5,1,100,0,0,22,0,0,0,-1--1--1,,1|(296,337)|
+11,5,442,372,337,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,6,Infection Rate,372,353,39,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,7,Contacts Between Infected and Uninfected People,365,581,67,21,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,8,7,6,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(460,453)|
+10,9,Infectivity,360,261,27,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,10,Total Population,1084,888,45,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,11,Susceptible Contacts,229,451,59,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,12,1,11,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(228,404)|
+1,13,11,7,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(239,511)|
+1,14,9,5,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(373,296)|
+10,15,Normal Contact Frequency,51,599,44,16,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,16,Actual Probability of Contact with Infected Person,572,567,59,21,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,17,16,7,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(487,581)|
+1,18,2,16,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(689,524)|
+10,19,Initial Population Susceptbile,28,220,47,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,20,19,1,0,0,0,0,0,64,1,-1--1--1,,1|(96,271)|
+10,21,Population Susceptible,1175,972,37,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,22,Diagnosed Untreated Population,1203,849,47,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,23,21,10,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(1147,912)|
+1,24,22,10,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(1152,852)|
+12,25,48,117,335,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,26,28,1,4,0,0,22,0,0,0,-1--1--1,,1|(116,332)|
+1,27,28,25,100,0,0,22,0,0,0,-1--1--1,,1|(95,332)|
+11,28,48,76,332,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,29,Birth Rate,76,348,29,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+12,30,48,184,144,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,31,33,30,4,0,0,22,0,0,0,-1--1--1,,1|(188,188)|
+1,32,33,1,100,0,0,22,0,0,0,-1--1--1,,1|(188,277)|
+11,33,48,188,232,8,8,33,3,0,0,4,0,0,0,0,0,0,0,0,0
+10,34,Normal Deaths,221,232,27,20,40,131,0,0,-1,0,0,0,0,0,0,0,0,0
+1,35,1,33,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(108,284)|
+10,36,Function of Perceived Risk on Contact Frequency,99,764,61,21,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,37,Contact Frequency,188,564,53,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,38,15,37,1,0,43,0,2,192,0,-1--1--1,|12||0-0-0,1|(100,561)|
+1,39,37,11,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(188,516)|
+10,40,Effect of Perceived Risk on Contacts and Infectivity,208,664,67,21,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,41,36,40,1,0,0,0,0,64,0,-1--1--1,,1|(168,724)|
+1,42,40,37,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(196,623)|
+10,43,Effect of Perceived Risk on Contacts and Infectivity,257,107,60,21,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,44,43,9,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(276,184)|
+10,45,Normal i,320,149,25,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,46,45,9,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(328,212)|
+10,47,Time,401,19,24,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,48,Contact Feedback Switch,85,497,37,21,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,49,48,37,1,0,0,0,0,64,0,-1--1--1,,1|(128,512)|
+12,50,0,523,443,20,20,4,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
 R1
-12,52,0,465,372,20,20,5,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+12,51,0,337,436,20,20,5,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
 B1
-12,53,0,511,539,20,20,4,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+12,52,0,425,643,20,20,4,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
 B2
-12,54,0,508,579,47,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+12,53,0,420,692,47,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
 Cutting Contacts
-12,55,0,711,436,32,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+12,54,0,515,481,32,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
 Contagion
-12,56,0,460,404,28,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+12,55,0,332,468,28,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
 Depletion
-10,57,Normal Death Rate,355,136,47,16,8,131,0,0,0,0,0,0,0,0,0,0,0,0
-1,58,57,34,0,0,0,0,0,64,0,-1--1--1,,1|(392,168)|
-10,59,Time to Adjust Perceived Risk,679,728,43,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,60,59,88,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(665,669)|
-12,61,0,1184,-135,152,152,3,44,0,0,1,0,0,0,0,0,0,0,0,0
+10,56,Normal Death Rate,111,195,47,16,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,57,56,33,0,0,0,0,0,64,0,-1--1--1,,1|(155,216)|
+10,58,Time to Adjust Perceived Risk,480,903,43,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,59,58,81,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(537,816)|
+12,60,0,1056,-71,152,152,3,44,0,0,1,0,0,0,0,0,0,0,0,0
 HIV/AIDS
-10,62,FINAL TIME,289,-139,35,8,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
-10,63,"Unidentified Population with HIV/AIDS",652,273,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,64,66,2,4,0,0,22,0,0,0,-1--1--1,,1|(788,276)|
-1,65,66,63,100,0,0,22,0,0,0,-1--1--1,,1|(712,276)|
-11,66,640,736,276,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
-10,67,Testing Rate,736,292,36,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
-10,68,Time to test positive,804,363,55,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,69,68,67,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(804,332)|
-1,70,63,67,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(693,236)|
-10,71,"Unidentified Population with HIV/AIDS",1048,605,43,21,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
-1,72,71,10,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(972,580)|
-1,73,71,16,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(909,552)|
-10,74,Population Treated,852,69,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,75,77,74,4,0,0,22,0,0,0,-1--1--1,,1|(848,128)|
-1,76,77,2,100,0,0,22,0,0,0,-1--1--1,,1|(848,219)|
-11,77,464,848,176,8,8,33,3,0,0,4,0,0,0,0,0,0,0,0,0
-10,78,Rate of Treatment,904,176,48,20,40,131,0,0,-1,0,0,0,0,0,0,0,0,0
-10,79,Time to Get Treated,677,99,53,20,8,131,0,0,0,0,0,0,0,0,0,0,0,0
-10,80,Fraction of Population Receiving Treatment,699,140,64,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,81,79,77,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(775,128)|
-1,82,80,77,1,0,0,0,0,64,0,-1--1--1,,1|(789,192)|
-10,83,Treatment Start,717,71,44,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,84,83,77,1,0,0,0,0,64,0,-1--1--1,,1|(825,139)|
-1,85,2,77,1,0,0,0,0,64,0,-1--1--1,,1|(873,220)|
-10,86,Population Treated,832,657,60,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
-1,87,86,10,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(861,624)|
-10,88,Perceived Risk,636,644,48,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-10,89,Order,576,724,20,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,90,89,88,0,0,0,0,0,64,1,-1--1--1,,1|(601,689)|
-1,91,88,41,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(509,657)|
-10,92,Total Deaths From Aids,1192,279,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,93,95,92,4,0,0,22,0,0,0,-1--1--1,,1|(1096,277)|
-1,94,95,2,100,0,0,22,0,0,0,-1--1--1,,1|(968,277)|
-11,95,662,1028,277,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
-10,96,"Death Rate (Untreated)",1028,299,33,16,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
-1,97,99,92,4,0,0,22,0,0,0,-1--1--1,,1|(1192,75)|
-1,98,99,74,100,0,0,22,0,0,0,-1--1--1,,1|(956,75)|
-11,99,200,1025,75,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
-10,100,"Death Rate (Treated)",1025,117,44,36,40,131,0,0,-1,0,0,0,0,0,0,0,0,0
-1,101,2,95,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(931,239)|
-1,102,74,99,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(959,24)|
-10,103,"Lifespan (Treated)",1172,44,51,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-10,104,"Lifespan (Untreated)",1116,357,57,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-1,105,103,99,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(1064,56)|
-1,106,104,96,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(1032,325)|
-1,107,16,88,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(659,552)|
+10,61,FINAL TIME,161,-75,35,8,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,62,"Unidentified Population with HIV/AIDS",476,336,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,63,65,2,4,0,0,22,0,0,0,-1--1--1,,1|(648,340)|
+1,64,65,62,100,0,0,22,0,0,0,-1--1--1,,1|(544,340)|
+11,65,200,580,340,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,66,Diagnosis Rate,580,356,43,8,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,67,Time to Get Diagnosed,621,288,33,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,68,67,66,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(620,324)|
+1,69,62,66,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(549,300)|
+10,70,"Unidentified Population with HIV/AIDS",1228,924,43,21,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,71,70,10,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(1165,895)|
+10,72,Population Treated,1100,344,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,73,75,72,4,0,0,22,0,0,0,-1--1--1,,1|(1024,344)|
+1,74,75,2,100,0,0,22,0,0,0,-1--1--1,,1|(892,344)|
+11,75,1014,980,344,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,76,Rate of Treatment,980,380,44,28,40,131,0,0,-1,0,0,0,0,0,0,0,0,0
+10,77,Time to Get Treated,913,469,37,28,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,78,77,75,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(936,404)|
+10,79,Population Treated,1108,1004,60,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,80,79,10,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(1103,948)|
+10,81,Perceived Risk,528,780,48,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,82,Order,393,908,20,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,83,82,81,0,0,0,0,0,64,1,-1--1--1,,1|(456,848)|
+1,84,81,119,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(416,795)|
+10,85,Total Deaths From Aids,1193,195,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,86,88,85,4,0,0,22,0,0,0,-1--1--1,,1|(1068,192)|
+1,87,88,2,100,0,0,22,0,0,0,-1--1--1,,1|(760,192)|
+11,88,1080,975,192,8,8,34,3,0,0,3,0,0,0,0,0,0,0,0,0
+10,89,"Death Rate (Untreated)",975,168,33,16,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,90,92,85,4,0,0,22,0,0,0,-1--1--1,,1|(1205,272)|
+1,91,92,72,100,0,0,22,0,0,0,-1--1--1,,1|(1168,337)|
+11,92,376,1205,337,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,93,"Death Rate (Treated)",1205,360,53,15,40,131,0,0,-1,0,0,0,0,0,0,0,0,0
+1,94,2,88,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(883,263)|
+1,95,72,92,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(1171,321)|
+10,96,"Lifespan (Treated)",1292,276,37,16,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,97,"Lifespan (Untreated)",1068,252,57,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,98,96,92,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(1256,288)|
+1,99,97,89,1,0,45,0,2,64,0,-1--1--1,|12||0-0-0,1|(1012,228)|
+12,100,48,477,140,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,101,103,100,4,0,0,22,0,0,0,-1--1--1,,1|(476,180)|
+1,102,103,62,100,0,0,22,0,0,0,-1--1--1,,1|(476,272)|
+11,103,48,476,221,8,8,33,3,0,0,4,0,0,0,0,0,0,0,0,0
+10,104,"Non-AIDS Deaths (Undiagnosed)",536,221,52,16,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,105,Normal Death Rate,411,183,43,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,106,105,104,1,0,0,0,0,64,0,-1--1--1,,1|(431,200)|
+1,107,62,103,1,0,0,0,0,64,0,-1--1--1,,1|(424,288)|
+12,108,48,729,148,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,109,111,108,4,0,0,22,0,0,0,-1--1--1,,1|(729,188)|
+1,110,111,2,100,0,0,22,0,0,0,-1--1--1,,1|(729,276)|
+11,111,48,729,224,8,8,33,3,0,0,2,0,0,0,0,0,0,0,0,0
+10,112,"Non-AIDS Deaths (Diagnosed)",684,224,39,20,40,131,0,0,-1,0,0,0,0,0,0,0,0,0
+10,113,Normal Death Rate,652,149,45,20,8,130,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,114,113,111,1,0,0,0,0,64,0,-1--1--1,,1|(700,180)|
+1,115,2,112,1,0,0,0,0,64,0,-1--1--1,,1|(684,284)|
+10,116,Known Probability of Contact with Infectious Individual,671,705,64,21,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,117,116,81,1,0,0,0,0,64,0,-1--1--1,,1|(595,757)|
+10,118,Reference Risk,243,811,43,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,119,Relative Risk,337,771,37,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,120,118,119,1,0,0,0,0,64,0,-1--1--1,,1|(284,789)|
+1,121,119,40,1,0,0,0,0,64,0,-1--1--1,,1|(275,735)|
+10,122,Total Population,251,-28,52,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,123,Relative Risk,176,0,44,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,124,Treatment Switch,860,412,49,8,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,125,124,75,0,0,0,0,0,64,0,-1--1--1,,1|(917,380)|
+10,126,Diagnosed Untreated Population,256,-80,47,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,127,62,16,1,0,0,0,0,64,0,-1--1--1,,1|(592,403)|
+1,128,2,75,1,0,0,0,0,64,0,-1--1--1,,1|(896,317)|
+10,129,Time to Adjust Treatment,896,597,41,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,130,Fraction of Population Receiving Treatment,1064,668,43,25,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+12,131,48,892,663,12,8,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,132,134,130,4,0,0,22,0,0,0,-1--1--1,,1|(996,663)|
+1,133,134,131,100,0,0,22,0,0,0,-1--1--1,,1|(927,663)|
+11,134,48,960,663,8,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,135,Rate of Increase In Treatments Provided,960,685,60,16,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,136,129,134,1,0,0,0,0,64,0,-1--1--1,,1|(940,619)|
+1,137,81,135,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(676,832)|
+1,138,130,134,1,0,0,0,0,64,0,-1--1--1,,1|(1027,628)|
+1,139,130,76,1,0,43,0,2,64,0,-1--1--1,|12||0-0-0,1|(1080,525)|
+10,140,Reference Risk,757,-271,52,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,141,Time to Adjust Perceived Risk,759,-201,48,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,142,Normal Contact Frequency,757,-140,48,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,143,Normal i,757,-88,32,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,144,Time to Adjust Treatment,749,-35,44,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+12,145,0,513,-165,152,152,3,44,0,0,1,0,0,0,0,0,0,0,0,0
+Infection_Rate
+10,146,Treatment Switch,752,13,56,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,147,Contact Feedback Switch,677,85,47,19,8,130,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,148,Infectivity Feedback Switch,380,131,49,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,149,148,9,1,0,0,0,0,64,0,-1--1--1,,1|(353,183)|
+10,150,Total Population,657,628,52,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,151,150,16,0,0,0,0,0,64,0,-1--1--1,,1|(629,608)|
+1,152,150,116,1,0,0,0,0,64,0,-1--1--1,,1|(668,659)|
+1,153,2,116,1,0,0,0,0,64,0,-1--1--1,,1|(780,572)|
+10,154,Infectivity Feedback Switch,804,69,53,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,155,Initial Number of Cases,529,257,48,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,156,155,62,0,0,0,0,0,64,1,-1--1--1,,1|(508,288)|
+10,157,Average Death Rate from AIDS,1300,508,45,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,158,"Death Rate (Untreated)",1219,441,36,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,159,"Death Rate (Treated)",1340,437,36,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,160,158,157,0,0,0,0,0,64,0,-1--1--1,,1|(1253,472)|
+1,161,159,157,0,0,0,0,0,64,0,-1--1--1,,1|(1323,468)|
+12,162,0,800,708,20,20,5,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+B3
+12,163,0,800,744,52,8,8,7,0,0,-1,0,0,0,-1,-1,0,0,0,0
+Treatment Uptake
 \\\---/// Sketch information - do not modify anything except names
 V300  Do not put anything below this section - it will be ignored
 *View 2
@@ -343,14 +464,14 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|255-255-255|72,7
 12,1,0,-180,191,152,152,3,44,0,0,1,0,0,0,0,0,0,0,0,0
 HIV/AIDS
 10,2,Infectivity,-232,404,27,8,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
-10,3,Effect of Probability on Contacts and Infectivity,-181,475,47,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,3,Effect of Perceived Risk on Contacts and Infectivity,-181,475,47,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
 1,4,3,2,0,0,0,0,0,64,0,-1--1--1,,1|(-204,441)|
 10,5,Normal i,-289,456,31,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
 1,6,5,2,0,0,0,0,0,64,0,-1--1--1,,1|(-265,436)|
 10,7,Time,-97,401,21,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
-10,8,Fear Switch,-27,461,40,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,8,Contact Feedback Switch,-27,461,40,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
 10,9,"Total Individuals Living with HIV/AIDS",1416,116,60,16,8,3,0,0,0,0,0,0,0,0,0,0,0,0
-10,10,"Population with HIV/AIDS",1557,172,59,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,10,Diagnosed Untreated Population,1557,172,59,8,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
 1,11,10,9,0,0,0,0,0,64,0,-1--1--1,,1|(1503,152)|
 10,12,"Unidentified Population with HIV/AIDS",1396,196,44,21,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
 1,13,12,9,0,0,0,0,0,64,0,-1--1--1,,1|(1404,160)|
@@ -358,14 +479,22 @@ HIV/AIDS
 1,15,14,9,0,0,0,0,0,64,0,-1--1--1,,1|(1465,185)|
 12,16,0,268,576,207,156,3,188,0,0,1,0,0,0,0,0,0,0,0,0
 HIV/AIDS_With_Antiretrov
-12,17,0,267,256,205,156,3,188,0,0,1,0,0,0,0,0,0,0,0,0
-Populations
-12,18,0,745,397,232,161,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+12,17,0,708,245,232,161,3,188,0,0,1,0,0,0,0,0,0,0,0,0
 Total_Deaths
+10,18,Infectivity Feedback Switch,-232,428,48,16,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,19,18,2,0,0,0,0,0,64,0,-1--1--1,,1|(-232,412)|
+12,20,0,221,248,205,164,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Infection_Rate
+12,21,0,757,589,208,175,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+HIV/AIDS_Prevalence
+12,22,0,1176,212,181,173,3,156,0,0,1,0,0,0,0,0,0,0,0,0
+Reference_Modes
 \\\---/// Sketch information - do not modify anything except names
 V300  Do not put anything below this section - it will be ignored
 *View 3
 $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|255-255-255|72,72,100,0
+12,1,0,249,204,179,160,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Diagnosis_Parameter_Test
 ///---\\\
 :GRAPH HIV/AIDS
 :TITLE HIV/AIDS
@@ -382,13 +511,10 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|255-255-255|72,7
 :TITLE Populations
 :SCALE
 :VAR Population Susceptible
-:DATASET No_Behavior
 :LINE-WIDTH 2
 :VAR "Population with HIV/AIDS"
-:DATASET No_Behavior
 :LINE-WIDTH 2
 :VAR "Unidentified Population with HIV/AIDS"
-:DATASET No_Behavior
 :LINE-WIDTH 2
 :VAR Population Susceptible
 :DATASET Behavior
@@ -407,33 +533,75 @@ $192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|255-255-255|72,7
 :DATASET No_Behavior
 :LINE-WIDTH 2
 :VAR Total Deaths From Aids
-:DATASET Behavior
+:DATASET Behavior and Treatment
 :LINE-WIDTH 2
 
 :GRAPH HIV/AIDS_With_Antiretrov
 :TITLE HIV/AIDS With Antiretroviral Therapy
 :SCALE
 :VAR "Total Individuals Living with HIV/AIDS"
-:DATASET No_Behavior
 :LINE-WIDTH 2
 :VAR Total Deaths From Aids
+:LINE-WIDTH 2
+
+:GRAPH Infection_Rate
+:TITLE Infection Rate
+:SCALE
+:VAR Infection Rate|Baseline
 :DATASET No_Behavior
 :LINE-WIDTH 2
-:VAR "Total Individuals Living with HIV/AIDS"
-:DATASET Treatment
+:VAR Infection Rate|Behavioral Feedback
+:DATASET Behavior
 :LINE-WIDTH 2
-:VAR Total Deaths From Aids
-:DATASET Treatment
+:VAR Infection Rate|Treatment Innovation
+:DATASET Behavior and Treatment
+:LINE-WIDTH 2
+
+:GRAPH HIV/AIDS_Prevalence
+:TITLE HIV/AIDS Prevalence
+:SCALE
+:VAR "Total Individuals Living with HIV/AIDS"|Baseline
+:DATASET No_Behavior
+:LINE-WIDTH 2
+:VAR "Total Individuals Living with HIV/AIDS"|Behavioral Feedback
+:DATASET Behavior
+:LINE-WIDTH 2
+:VAR "Total Individuals Living with HIV/AIDS"|Treatment Innovation
+:DATASET Behavior and Treatment
+:LINE-WIDTH 2
+
+:GRAPH Reference_Modes
+:TITLE Reference Modes
+:SCALE
+:VAR Infection Rate|New Infections
+:LINE-WIDTH 2
+:VAR Average Death Rate from AIDS|Death Rate
+:LINE-WIDTH 2
+
+:GRAPH Diagnosis_Parameter_Test
+:TITLE Diagnosis Parameter Test
+:SCALE
+:VAR Infection Rate|Diagnosis Delay
+:DATASET Lack of Testing
+:LINE-WIDTH 2
+:SCALE
+:VAR Infection Rate|Treatment
+:DATASET Behavior and Treatment
 :LINE-WIDTH 2
 :L<%^E!@
-1:Treatment.vdfx
+1:Current.vdfx
+1:Lack of Testing.vdfx
+1:No Prevention Education.vdfx
+1:Behavior and Treatment.vdfx
+1:Behavior.vdfx
+1:No_Behavior.vdfx
 4:Time
-5:Time to Get Treated
-9:Treatment
+5:Treatment Switch
+9:Current
 19:100,0
 24:0
-25:487
-26:487
+25:75
+26:75
 23:0
 15:0,0,0,0,0,0
 27:0,
